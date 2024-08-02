@@ -52,12 +52,50 @@ const Order = sequelize.define('Order', {
         defaultValue: Sequelize.NOW
     }
 });
-
+// Модель продукта
+const Product = sequelize.define('Product', {
+    productName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    productPrice: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    productDescription: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    }
+});
 // Синхронизация моделей с базой данных
 sequelize.sync()
     .then(() => console.log('Order table has been created'))
     .catch(err => console.log('Error: ' + err));
+// Маршрут для добавления продукта
+app.post('/api/products', async (req, res) => {
+    const { productName, productPrice, productDescription } = req.body;
+    try {
+        const newProduct = await Product.create({
+            productName,
+            productPrice,
+            productDescription
+        });
+        res.status(201).json(newProduct);
+    } catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ error: 'Failed to create product', details: error.message });
+    }
+});
 
+// Маршрут для получения всех продуктов
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await Product.findAll();
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch products' });
+    }
+});
 // POST маршрут для создания заказа
 app.post('/api/orders', async (req, res) => {
     const { productName, productPrice, quantity, customerName, customerAddress, customerPhone } = req.body;
